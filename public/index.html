@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web site created using create-react-app" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+  <link rel="stylesheet" href="./style.css">
+  <script src="./import.js"></script>
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <title>React App</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root">
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      if (sessionStorage.getItem('token') && sessionStorage.getItem('token').length > 10) {
+        getImports()
+      } else {
+        document.getElementById('root').insertAdjacentHTML('afterbegin', `
+          <div class="wrapper">
+            <div id="modal2" class="modal modal--align-top modal__bg" role="dialog" aria-hidden="true">
+		<div class="modal__dialog">
+			<div class="modal__content">
+				<h1>Big Modal</h1>
+			
+				<a href="" class="modal__close demo-close">
+x				</a>
+			</div>
+		</div>
+	</div>
+      <section class="learn-wrap">
+        <img src="images/learn.png" />
+      </section>
+      <section class="login-wrap">
+        <div class="login">
+          <form onsubmit="login(event)" id=sign-in>
+            <h2 class="login-title">Login</h2>
+            <div class="login-group">
+              <label>username</label>
+              <input type="text" id="username" placeholder="" class="login-input" />
+            </div>
+            <div class="login-group">
+              <label>password</label>
+              <input type="password" id="password" placeholder="" class="login-input" />
+            </div>
+            <div class="login-group login-buttons">
+              <button type="submit" class="login-button">login</button>
+              <button type="button" id="register" class="register-button">register</button>
+            </div>
+          </form>
+          <form onsubmit="register(event)" id=sign-up>
+            <h2 class="login-title">Register</h2>
+            <div class="login-group">
+              <label>username</label>
+              <input type="text" class="login-input" placeholder="" id="reg-username" />
+            </div>
+            <div class="login-group">
+              <label>password</label>
+              <input type="password" class="login-input" placeholder="" id="reg-password" />
+            </div>
+            <div class="login-group">
+              <label>confirm password</label>
+              <input type="password" class="login-input" placeholder="" id="reg-password-confirm" />
+            </div>
+            <div class="login-group">
+              <button type="submit" class="register-button">register</button>
+              <button type="button" id="back" class="login-button">go back</button>
+            </div>
+          </form>
+
+        </div>
+      </section>
+      <section class="explore-wrap">
+        <img src="images/explore.png" />
+      </section>
+
+      <section class="think-wrap">
+        <img src="images/think.png" />
+
+      </section>
+      <div data-modal="#modal2" style="display:none" class="modal__trigger">Modal 2</div>
+    </div>
+          `
+        )
+        document.getElementById('sign-up').setAttribute('style', 'display:none');
+        document.getElementById('register').addEventListener('click', function () {
+          document.getElementById('sign-up').removeAttribute('style');
+          document.getElementById('sign-in').setAttribute('style', 'display:none');
+        });
+        document.getElementById('back').addEventListener('click', function () {
+          document.getElementById('sign-in').removeAttribute('style');
+          document.getElementById('sign-up').setAttribute('style', 'display:none');
+        });
+        var Modal = (function () {
+
+var trigger = $qsa('.modal__trigger'); // what you click to activate the modal
+var modals = $qsa('.modal'); // the entire modal (takes up entire window)
+var modalsbg = $qsa('.modal__bg'); // the entire modal (takes up entire window)
+var content = $qsa('.modal__content'); // the inner content of the modal
+var closers = $qsa('.modal__close'); // an element used to close the modal
+var w = window;
+var isOpen = false;
+var contentDelay = 400; // duration after you click the button and wait for the content to show
+var len = trigger.length;
+
+console.log(len)
+// make it easier for yourself by not having to type as much to select an element
+function $qsa(el) {
+  return document.querySelectorAll(el);
+}
+
+var getId = function (event) {
+
+  event.preventDefault();
+  var self = this;
+  // get the value of the data-modal attribute from the button
+  var modalId = self.dataset.modal;
+  var len = modalId.length;
+  // remove the '#' from the string
+  var modalIdTrimmed = modalId.substring(1, len);
+  // select the modal we want to activate
+  var modal = document.getElementById(modalIdTrimmed);
+  // execute function that creates the temporary expanding div
+  makeDiv(self, modal);
+};
+
+var makeDiv = function (self, modal) {
+
+  var fakediv = document.getElementById('modal__temp');
+
+  /**
+   * if there isn't a 'fakediv', create one and append it to the button that was
+   * clicked. after that execute the function 'moveTrig' which handles the animations.
+   */
+
+  if (fakediv === null) {
+    var div = document.createElement('div');
+    div.id = 'modal__temp';
+    self.appendChild(div);
+    moveTrig(self, modal, div);
+  }
+};
+
+var moveTrig = function (trig, modal, div) {
+  var trigProps = trig.getBoundingClientRect();
+  var m = modal;
+  var mProps = m.querySelector('.modal__content').getBoundingClientRect();
+  var transX, transY, scaleX, scaleY;
+  var xc = w.innerWidth / 2;
+  var yc = w.innerHeight / 2;
+
+  // this class increases z-index value so the button goes overtop the other buttons
+  trig.classList.add('modal__trigger--active');
+
+  // these values are used for scale the temporary div to the same size as the modal
+  scaleX = mProps.width / trigProps.width;
+  scaleY = mProps.height / trigProps.height;
+
+  scaleX = scaleX.toFixed(3); // round to 3 decimal places
+  scaleY = scaleY.toFixed(3);
+
+
+  // these values are used to move the button to the center of the window
+  transX = Math.round(xc - trigProps.left - trigProps.width / 2);
+  transY = Math.round(yc - trigProps.top - trigProps.height / 2);
+
+  // if the modal is aligned to the top then move the button to the center-y of the modal instead of the window
+  if (m.classList.contains('modal--align-top')) {
+    transY = Math.round(mProps.height / 2 + mProps.top - trigProps.top - trigProps.height / 2);
+  }
+
+
+  // translate button to center of screen
+  trig.style.transform = 'translate(' + transX + 'px, ' + transY + 'px)';
+  trig.style.webkitTransform = 'translate(' + transX + 'px, ' + transY + 'px)';
+  // expand temporary div to the same size as the modal
+  div.style.transform = 'scale(' + scaleX + ',' + scaleY + ')';
+  div.style.webkitTransform = 'scale(' + scaleX + ',' + scaleY + ')';
+
+
+  window.setTimeout(function () {
+    window.requestAnimationFrame(function () {
+      open(m, div);
+    });
+  }, contentDelay);
+
+};
+
+var open = function (m, div) {
+
+  if (!isOpen) {
+    // select the content inside the modal
+    var content = m.querySelector('.modal__content');
+    // reveal the modal
+    m.classList.add('modal--active');
+    // reveal the modal content
+    content.classList.add('modal__content--active');
+
+    /**
+     * when the modal content is finished transitioning, fadeout the temporary
+     * expanding div so when the window resizes it isn't visible ( it doesn't
+     * move with the window).
+     */
+
+    content.addEventListener('transitionend', hideDiv, false);
+
+    isOpen = true;
+  }
+
+  function hideDiv() {
+    // fadeout div so that it can't be seen when the window is resized
+    div.style.opacity = '0';
+    content.removeEventListener('transitionend', hideDiv, false);
+  }
+};
+
+var close = function (event) {
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  var target = event.target;
+  var div = document.getElementById('modal__temp');
+
+  /**
+   * make sure the modal__bg or modal__close was clicked, we don't want to be able to click
+   * inside the modal and have it close.
+   */
+
+  if (isOpen && target.classList.contains('modal__bg') || target.classList.contains('modal__close')) {
+
+    // make the hidden div visible again and remove the transforms so it scales back to its original size
+    div.style.opacity = '1';
+    div.removeAttribute('style');
+
+    /**
+    * iterate through the modals and modal contents and triggers to remove their active classes.
+    * remove the inline css from the trigger to move it back into its original position.
+    */
+
+    for (var i = 0; i < len; i++) {
+      modals[i].classList.remove('modal--active');
+      content[i].classList.remove('modal__content--active');
+      trigger[i].style.transform = 'none';
+      trigger[i].style.webkitTransform = 'none';
+      trigger[i].classList.remove('modal__trigger--active');
+    }
+
+    // when the temporary div is opacity:1 again, we want to remove it from the dom
+    div.addEventListener('transitionend', removeDiv, false);
+
+    isOpen = false;
+
+  }
+
+  function removeDiv() {
+    setTimeout(function () {
+      window.requestAnimationFrame(function () {
+        // remove the temp div from the dom with a slight delay so the animation looks good
+        div.remove();
+      });
+    }, contentDelay - 50);
+  }
+
+};
+
+var bindActions = function () {
+  for (var i = 0; i < len; i++) {
+    trigger[i].addEventListener('click', getId, false);
+    closers[i].addEventListener('click', close, false);
+    modalsbg[i].addEventListener('click', close, false);
+  }
+};
+
+var init = function () {
+  bindActions();
+};
+
+return {
+  init: init
+};
+
+}());
+
+Modal.init();
+      }
+    }, false);
+   
+    async function register(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value;
+      const password = document.getElementById('reg-password').value;
+      const passwordConfirm = document.getElementById('reg-password-confirm').value;
+
+      let register = true;
+      if (username === null || username === undefined || username === "") {
+        document.getElementById('reg-username').classList.add('error');
+        document.getElementById('reg-username').setAttribute('placeholder', '  username is required')
+        register = false;
+      } else {
+        document.getElementById('reg-username').classList.remove('error');
+        document.getElementById('reg-username').setAttribute('placeholder', '')
+        register = true;
+      }
+      if (password === null || password === undefined || password === "") {
+        document.getElementById('reg-password').classList.add('error');
+        document.getElementById('reg-password').setAttribute('placeholder', ' password is required')
+        register = false;
+      } else {
+        document.getElementById('reg-password').classList.remove('error');
+        document.getElementById('reg-password').setAttribute('placeholder', '')
+        register = true;
+      }
+      if (password !== passwordConfirm) {
+        document.getElementById('reg-password-confirm').classList.add('error');
+        document.getElementById('reg-password-confirm').setAttribute('placeholder', '  passwords does not match')
+        register = false;
+      } else if (password && password.length > 1) {
+        document.getElementById('reg-password-confirm').classList.remove('error');
+        document.getElementById('reg-password-confirm').setAttribute('placeholder', '')
+        register = true;
+      }
+      if (register === true) {
+        await fetch('http://localhost:3000/pre/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify({ username: username, password: password, type: "register" })
+        }).then(response => {
+          return response.json()
+        }).then(json => {
+          if (json.status === 2030) {
+
+          }
+        });
+      }
+    }
+    async function login(e) {
+      e.preventDefault();
+      let login = true;
+      const loaderDiv = document.createElement('div');
+      document.getElementsByClassName('modal__trigger')[0].click()
+      const username = document.getElementById('username').value;
+      if (username === null || username === undefined || username === "") {
+        document.getElementById('username').classList.add('error');
+        document.getElementById('username').setAttribute('placeholder', '  username is required')
+        login = false;
+      } else {
+        document.getElementById('username').classList.remove('error');
+        document.getElementById('username').setAttribute('placeholder', '')
+        login = true;
+      }
+      const password = document.getElementById('password').value;
+      if (password === null || password === undefined || password === "") {
+        document.getElementById('password').classList.add('error');
+        document.getElementById('password').setAttribute('placeholder', '  password is required')
+        login = false;
+      } else {
+        document.getElementById('username').classList.remove('error');
+        document.getElementById('username').setAttribute('placeholder', '')
+        login = true;
+      }
+      if (login === true) {
+        loaderDiv.classList.add('loader');
+
+        const spinnerDiv = document.createElement('div');
+        spinnerDiv.classList.add('spinner');
+        const cube1 = document.createElement('div');
+        cube1.classList.add('cube1');
+        const cube2 = document.createElement('div');
+        cube2.classList.add('cube2');
+
+        spinnerDiv.appendChild(cube1);
+        spinnerDiv.appendChild(cube2);
+        loaderDiv.appendChild(spinnerDiv)
+        document.querySelector('.wrapper').appendChild(loaderDiv)
+        document.getElementsByClassName('modal__trigger')[0].click()
+
+        await fetch('http://localhost:3000/pre/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify({ username: username, password: password, type: "login" })
+        }).then(response => {
+          return response.json()
+        }).then(json => {
+          if (json.status === 2030) {
+            sessionStorage.setItem("token", json.token);
+            getImports();
+          }
+        }).catch(e => {
+        });
+
+      }
+
+    }
+  </script>
+  </div>
+
+</body>
+
+</html>
